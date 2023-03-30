@@ -13,7 +13,7 @@ app = FastAPI()
 
 
 origins = [
-    "http://localhost:8080",
+    "*",
 ]
 
 app.add_middleware(
@@ -26,7 +26,8 @@ app.add_middleware(
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-prompt_surfix = "{ name: '<object_name>', color: '<object_color_in_hex>', position: [0,0,0], rotation: [0,0,0] }"
+prompt_prefix = "Given type object: \nchair_type = {\n  '1': 'chair'}\ntable_type = {\n  '2': 'chair'}\n"
+prompt_surfix = "object follow this format: \n object_name = { 'name': '<object_capitalize_name>',  'color': '<object_color_based_on_propmt_in_hex>',  'type': '<object_type_based_on_object_name_in_lowercase_string>',  'id': '<object_id_based_on_object_type>'}"
 
 
 @app.get("/")
@@ -36,7 +37,7 @@ def get_root():
 
 @app.post("/generate")
 async def generate_object(body: PromptBody):
-    complete_prompt = body.prompt + prompt_surfix
+    complete_prompt = prompt_prefix + body.prompt + prompt_surfix
     response = openai.Completion.create(
         model="text-davinci-003",
         prompt=complete_prompt,
@@ -46,4 +47,4 @@ async def generate_object(body: PromptBody):
         frequency_penalty=0,
         presence_penalty=0
     )
-    return {"choise": response}
+    return {"completion": response}
