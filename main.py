@@ -1,8 +1,10 @@
 import os
 import openai
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 
 class PromptBody(BaseModel):
@@ -10,6 +12,7 @@ class PromptBody(BaseModel):
 
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 
 origins = [
@@ -32,9 +35,11 @@ prompt_prefix_2 = "Given list of uuids, must use this uuid corresponding to the 
 prompt_surfix = "object follow this format: \n object_name = { 'name': '<object_capitalize_name>',  'color': '<object_color_based_on_propmt_in_hex>',  'type': '<object_type_based_on_object_name_in_lowercase_string>',  'uuid': '<object_id_from_object_type_and_list_of_uuid>'}"
 
 
-@app.get("/")
-def get_root():
-    return {"message": "✌️"}
+@app.get("/", response_class=HTMLResponse)
+def get_root(request: Request):
+    message = "✌️"
+    # return {"message": "✌️"}
+    return templates.TemplateResponse("index.html", {"request": request, "message": message})
 
 
 @app.post("/generate")
